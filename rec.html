@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Benfit AI Analytics Debugger</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #0b0b12;
+      --fg: #eef2f6;
+      --muted: #aab3c0;
+      --card: rgba(255,255,255,0.05);
+      --line: rgba(255,255,255,0.12);
+      --accent1: #9b7bff;
+      --accent2: #25d0ff;
+      --danger: #ff6b6b;
+      --ok: #38d39f;
+    }
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, sans-serif;
+    }
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    h1 {
+      font-size: clamp(22px, 4vw, 30px);
+      margin: 0 0 8px;
+      background: linear-gradient(90deg, var(--accent1), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .sub { color: var(--muted); margin-bottom: 20px; }
+    .row { display: grid; gap: 16px; margin-bottom: 16px; }
+    @media (min-width: 860px) { .row.cols-2 { grid-template-columns: 1fr 1fr; } }
+    @media (min-width: 1100px) { .row.cols-3 { grid-template-columns: 1fr 1fr 1fr; } }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    }
+    .label { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+    input[type="text"] {
+      width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line);
+      background: rgba(255,255,255,0.04); color: var(--fg); outline: none;
+    }
+    .grid-btns { display: grid; gap: 10px; }
+    @media (min-width: 600px) { .grid-btns { grid-template-columns: repeat(2, 1fr); } }
+    @media (min-width: 900px) { .grid-btns { grid-template-columns: repeat(3, 1fr); } }
+    button {
+      padding: 12px 14px; border-radius: 10px; border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+      color: var(--fg); font-weight: 600; cursor: pointer;
+    }
+    button.primary { background: linear-gradient(90deg, var(--accent1), var(--accent2)); border: none; }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; }
+    table { width: 100%; border-collapse: collapse; overflow: hidden; border-radius: 10px; }
+    th, td { text-align: left; padding: 10px; border-bottom: 1px solid var(--line); }
+    th { color: var(--muted); font-weight: 600; }
+    .pill { display:inline-block; padding: 2px 8px; border-radius: 999px; border:1px solid var(--line); font-size: 12px; }
+    .ok { color: var(--ok); }
+    .err { color: var(--danger); }
+    .foot { margin-top: 14px; color: var(--muted); font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Najmi Analytics Debugger</h1>
+    <div class="sub">Log events and read <span class="mono">/analytics/summary</span> from your API.</div>
+
+    <!-- API base + session -->
+    <div class="row cols-3">
+      <div class="card">
+        <div class="label">API Base URL</div>
+        <input id="baseUrl" type="text" value="https://benifit-gpt-be.onrender.com" />
+        <div class="foot">Change if you want to point to local/dev.</div>
+      </div>
+      <div class="card">
+        <div class="label">Session ID</div>
+        <div class="mono" id="sessionId"></div>
+        <div class="foot">Used to correlate events from this browser.</div>
+      </div>
+      <div class="card">
+        <div class="label">Quick Actions</div>
+        <div class="grid-btns">
+          <button id="btnLogView" class="primary">Log Homepage View</button>
+          <button id="btnCongrats">Log Congratulations Visit</button>
+          <button id="btnRefresh">Refresh Summary</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Buttons 1..5 -->
+    <div class="row">
+      <div class="card">
+        <div class="label">Track the five homepage buttons</div>
+        <div class="grid-btns">
+          <button data-bid="cta-1">Click: cta-1</button>
+          <button data-bid="cta-2">Click: cta-2</button>
+          <button data-bid="cta-3">Click: cta-3</button>
+          <button data-bid="cta-4">Click: cta-4</button>
+          <button data-bid="cta-5">Click: cta-5</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live counters -->
+    <div class="row cols-3">
+      <div class="card">
+        <div class="label">Homepage Views ( / )</div>
+        <div style="font-size: 34px; font-weight: 800;" id="homeCount">…</div>
+        <div id="homeCountMsg" class="foot"></div>
+      </div>
+      <div class="card">
+        <div class="label">Totals</div>
+        <table>
+          <thead><tr><th>Type</th><th>Count</th></tr></thead>
+          <tbody id="totalsBody"></tbody>
+        </table>
+      </div>
+      <div class="card">
+        <div class="label">Latest Status</div>
+        <div id="status" class="mono">Ready.</div>
+      </div>
+    </div>
+
+    <!-- Tables -->
+    <div class="row cols-2">
+      <div class="card">
+        <div class="label">Pages</div>
+        <table>
+          <thead><tr><th>Type</th><th>Page</th><th>Count</th></tr></thead>
+          <tbody id="pagesBody"></tbody>
+        </table>
+      </div>
+      <div class="card">
+        <div class="label">Buttons</div>
+        <table>
+          <thead><tr><th>Page</th><th>Button ID</th><th>Count</th></tr></thead>
+          <tbody id="buttonsBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="foot">Tip: keep this tab open while testing your app; click a CTA in your app, then hit “Refresh Summary” here.</div>
+  </div>
+
+  <script>
+    // ------- client helpers (no external deps) -------
+    function getOrCreateSessionId() {
+      const KEY = "session_id";
+      let sid = localStorage.getItem(KEY);
+      if (!sid) {
+        sid = (crypto && crypto.randomUUID && crypto.randomUUID()) ||
+              String(Date.now()) + Math.random().toString(16).slice(2);
+        localStorage.setItem(KEY, sid);
+      }
+      return sid;
+    }
+
+    function base() {
+      return document.getElementById("baseUrl").value.trim().replace(/\/+$/, "");
+    }
+
+    async function post(path, body) {
+      try {
+        const res = await fetch(base() + path, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body || {}),
+          credentials: "omit",
+        });
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error((json && json.error) || "HTTP " + res.status);
+        return json;
+      } catch (e) {
+        setStatus("POST " + path + " -> " + e.message, true);
+        throw e;
+      }
+    }
+
+    async function get(path) {
+      try {
+        const res = await fetch(base() + path, { credentials: "omit" });
+        const json = await res.json();
+        if (!res.ok) throw new Error((json && json.error) || "HTTP " + res.status);
+        return json;
+      } catch (e) {
+        setStatus("GET " + path + " -> " + e.message, true);
+        throw e;
+      }
+    }
+
+    function setStatus(msg, isErr) {
+      const el = document.getElementById("status");
+      el.textContent = (isErr ? "❌ " : "✅ ") + msg;
+      el.className = "mono " + (isErr ? "err" : "ok");
+    }
+
+    function renderTableRows(tbodyId, rows, mapFn) {
+      const tbody = document.getElementById(tbodyId);
+      tbody.innerHTML = "";
+      rows.forEach(r => {
+        const tr = document.createElement("tr");
+        mapFn(tr, r);
+        tbody.appendChild(tr);
+      });
+    }
+
+    function extractHomepageCount(summary) {
+      const pages = summary?.pages || [];
+      const row = pages.find(p => p?._id?.type === "page_view" && (p._id.page === "/" || !p._id.page));
+      return row?.count || 0;
+    }
+
+    async function refreshSummary() {
+      const data = await get("/analytics/summary");
+      // Totals
+      renderTableRows("totalsBody", data.totals || [], (tr, r) => {
+        tr.innerHTML = "<td class='mono'>" + (r._id || "") + "</td><td>" + (r.count || 0) + "</td>";
+      });
+      // Pages
+      renderTableRows("pagesBody", data.pages || [], (tr, r) => {
+        const type = r._id?.type ?? "";
+        const page = r._id?.page ?? "";
+        tr.innerHTML =
+          "<td class='mono'><span class='pill'>" + type + "</span></td>" +
+          "<td class='mono'>" + page + "</td>" +
+          "<td>" + (r.count || 0) + "</td>";
+      });
+      // Buttons
+      renderTableRows("buttonsBody", data.buttons || [], (tr, r) => {
+        const page = r._id?.page ?? "";
+        const buttonId = r._id?.buttonId ?? "";
+        tr.innerHTML =
+          "<td class='mono'>" + page + "</td>" +
+          "<td class='mono'><span class='pill'>" + buttonId + "</span></td>" +
+          "<td>" + (r.count || 0) + "</td>";
+      });
+      // Homepage count
+      const c = extractHomepageCount(data);
+      document.getElementById("homeCount").textContent = String(c);
+      document.getElementById("homeCountMsg").textContent = "Fetched at " + new Date().toLocaleTimeString();
+      setStatus("Summary loaded");
+    }
+
+    async function logHomepageView() {
+      await post("/analytics/pageview", {
+        page: "/",
+        userId: null,
+        sessionId: getOrCreateSessionId(),
+        meta: { source: "index.html-debugger" }
+      });
+      setStatus("Logged homepage view");
+      await refreshSummary();
+    }
+
+    async function logCongrats() {
+      await post("/analytics/congrats", {
+        userId: null,
+        sessionId: getOrCreateSessionId(),
+        meta: { source: "index.html-debugger" }
+      });
+      setStatus("Logged congratulations visit");
+      await refreshSummary();
+    }
+
+    async function logButton(buttonId) {
+      await post("/analytics/button", {
+        page: "/",
+        buttonId,
+        userId: null,
+        sessionId: getOrCreateSessionId(),
+        meta: { source: "index.html-debugger" }
+      });
+      setStatus("Logged button click: " + buttonId);
+      await refreshSummary();
+    }
+
+    // ------- wire up UI -------
+    (function init() {
+      document.getElementById("sessionId").textContent = getOrCreateSessionId();
+
+      document.getElementById("btnLogView").addEventListener("click", logHomepageView);
+      document.getElementById("btnCongrats").addEventListener("click", logCongrats);
+      document.getElementById("btnRefresh").addEventListener("click", refreshSummary);
+
+      document.querySelectorAll("[data-bid]").forEach(btn => {
+        btn.addEventListener("click", () => logButton(btn.getAttribute("data-bid")));
+      });
+
+      // initial load
+      refreshSummary().catch(() => {});
+    })();
+  </script>
+</body>
+</html>
