@@ -10,17 +10,18 @@
   --accent:#ff7a1a;
   --shade:#faf6f3;
 }
-html,body{margin:0;padding:0}
+html,body{margin:0;padding:0;overflow-x:hidden}
 body{
   font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
   color:var(--text);
   background:var(--bg);
   line-height:1.6;
+  max-width:100vw;
 }
 img{max-width:100%;display:block}
 a{color:inherit;text-decoration:none}
 ul{padding-left:1.2rem}
-.section{padding:80px 20px}
+.section{padding:80px 20px;width:100%;box-sizing:border-box}
 .section.alt{background:#fff7f0}
 .section-head{max-width:900px;margin:0 auto 40px;text-align:center}
 .section-head h2{font-size:40px;margin:0 0 10px}
@@ -38,15 +39,16 @@ ul{padding-left:1.2rem}
 .tiny{padding:6px 10px;border-radius:8px;font-size:12px}
 
 .announce{
-  position:sticky;top:0;z-index:50;background:#1f2937;color:#fff;padding:8px 16px;
-  display:flex;gap:10px;align-items:center;justify-content:center
+  position:sticky;top:0;z-index:50;background:#1f2937;color:#fff;padding:6px 16px;
+  display:flex;gap:8px;align-items:center;justify-content:center;width:100%;box-sizing:border-box;
+  font-size:14px;line-height:1.3
 }
 .announce .btn{background:#22c55e}
 
 .site-header{
-  position:sticky;top:38px;z-index:40;background:#fff;backdrop-filter:saturate(180%) blur(6px);
+  position:sticky;top:32px;z-index:40;background:#fff;backdrop-filter:saturate(180%) blur(6px);
   border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;
-  padding:12px 20px
+  padding:12px 20px;width:100%;box-sizing:border-box
 }
 .logo{display:flex;align-items:center;gap:10px;font-weight:800}
 .logo .accent{margin-left:2px}
@@ -59,8 +61,8 @@ ul{padding-left:1.2rem}
 .mobile-nav.open{display:flex}
 .mobile-nav a{padding:10px 2px;border-bottom:1px dashed #eee}
 
-.hero{padding:60px 20px 40px;position:relative;background:linear-gradient(135deg,#fff7f0 0%,#ffffff 70%)}
-.hero-grid{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1.1fr .9fr;gap:36px;align-items:center}
+.hero{padding:60px 20px 40px;position:relative;background:linear-gradient(135deg,#fff7f0 0%,#ffffff 70%);width:100%;box-sizing:border-box}
+.hero-grid{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1.1fr .9fr;gap:36px;align-items:center;width:100%;box-sizing:border-box}
 .hero-copy h1{font-size:48px;line-height:1.15;margin:16px 0}
 .pill{display:inline-block;background:#fff;border:1px solid var(--border);padding:6px 10px;border-radius:999px;font-weight:600}
 .hero-cta{display:flex;gap:12px;margin:18px 0 10px}
@@ -129,7 +131,7 @@ blockquote footer{color:var(--muted);margin-top:10px}
 .legal h2{font-size:32px}
 .legal h3{margin-top:16px}
 
-.site-footer{background:#0b1220;color:#d1d5db;padding:40px 20px}
+.site-footer{background:#0b1220;color:#d1d5db;padding:40px 20px;width:100%;box-sizing:border-box}
 .site-footer .cols{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:2fr 1fr 1fr 2fr;gap:18px}
 .site-footer h4{margin:8px 0}
 .site-footer ul{list-style:none;padding:0;margin:0}
@@ -142,7 +144,15 @@ blockquote footer{color:var(--muted);margin-top:10px}
 .modal-close{position:absolute;top:8px;right:12px;background:#fff;border:none;border-radius:8px;padding:6px 8px;cursor:pointer}
 
 @media (max-width: 1024px){
-  .hero-grid{grid-template-columns:1fr}
+  .announce{
+    padding:6px 16px;
+    font-size:13px;
+    flex-wrap:wrap;
+    gap:6px
+  }
+  .hero{padding:50px 20px 30px}
+  .hero-grid{grid-template-columns:1fr;gap:24px}
+  .hero-copy h1{font-size:40px}
   .services-grid{grid-template-columns:repeat(2,1fr)}
   .work-grid,.cards.three,.pricing-grid,.testimonials{grid-template-columns:repeat(2,1fr)}
   .process{grid-template-columns:repeat(3,1fr)}
@@ -152,6 +162,28 @@ blockquote footer{color:var(--muted);margin-top:10px}
   .nav{display:none}
   .burger{display:block}
   .mobile-nav a{font-size:16px}
+  .announce{
+    padding:6px 12px;
+    flex-direction:row;
+    flex-wrap:wrap;
+    gap:6px;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    font-size:13px;
+    line-height:1.3
+  }
+  .announce .btn{
+    padding:4px 12px;
+    font-size:11px;
+    border-radius:4px;
+    margin-left:4px
+  }
+  .hero{padding:40px 16px 20px}
+  .hero-copy h1{font-size:32px;line-height:1.2}
+  .hero-cta{flex-direction:column;gap:10px}
+  .hero-cta .btn{text-align:center}
+  .hero-social-proof{flex-direction:column;align-items:flex-start;gap:10px}
   .cards.three,.services-grid,.work-grid,.pricing-grid,.testimonials{grid-template-columns:1fr}
   .process{grid-template-columns:1fr}
   .contact-form .grid{grid-template-columns:1fr}
